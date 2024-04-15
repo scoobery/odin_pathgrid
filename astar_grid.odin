@@ -5,7 +5,7 @@ import "core:math"
 import "core:mem"
 import "core:slice"
 
-PATHFINDER_BUFFER_SIZE :: 128 * mem.Kilobyte
+DEFAULT_PATHFINDER_BUFFER_SIZE :: 128 * mem.Kilobyte
 
 IVector2 :: [2]i32
 
@@ -58,8 +58,9 @@ astar_grid_init :: proc(
 	asg: ^AStar_Grid,
 	heuristic := heuristic_euclidean,
 	allocator := context.allocator,
+    buffer_size := DEFAULT_PATHFINDER_BUFFER_SIZE,
 ) {
-	asg.alloc.bytes = make([]byte, PATHFINDER_BUFFER_SIZE, allocator)
+	asg.alloc.bytes = make([]byte, DEFAULT_PATHFINDER_BUFFER_SIZE, allocator)
 	mem.arena_init(&asg.alloc.arena, asg.alloc.bytes)
 
 	asg.blocked_points = make(type_of(asg.blocked_points), allocator = allocator)
@@ -140,6 +141,7 @@ _cmp_node :: proc(a, b: _Astar_Node) -> bool {return a.cost < b.cost}
 astar_get_path :: proc(
 	asg: ^AStar_Grid,
 	from, to: IVector2,
+    max_distance := max(f32),
 	path_alloc := context.allocator,
 ) -> (
 	path: []IVector2,
@@ -190,6 +192,10 @@ astar_get_path :: proc(
 			found_path = true
 			break
 		}
+        
+        // Skip to the next point if this spot is further than the maximum distance by heuristic.
+        if asg.compute_heuristic(from, current) > max_distance { continue }
+
 		// Check all walkable neighbors. (No need for OOB check; this function does it.)
 		neighbors = _neighbors_walkable(asg, current, tmp_alloc)
 		for n in neighbors {
