@@ -45,7 +45,7 @@ AStar_Grid :: struct {
 	region:            struct {
 		min, max: IVector2,
 	},
-	blocked_points:    map[IVector2]struct{},
+	blocked_points:    map[IVector2]struct {},
 	cost_points:       map[IVector2]f32,
 	compute_heuristic: proc(a, b: IVector2) -> f32,
 	alloc:             struct {
@@ -58,7 +58,7 @@ astar_grid_init :: proc(
 	asg: ^AStar_Grid,
 	heuristic := heuristic_euclidean,
 	allocator := context.allocator,
-    buffer_size := DEFAULT_PATHFINDER_BUFFER_SIZE,
+	buffer_size := DEFAULT_PATHFINDER_BUFFER_SIZE,
 ) {
 	asg.alloc.bytes = make([]byte, DEFAULT_PATHFINDER_BUFFER_SIZE, allocator)
 	mem.arena_init(&asg.alloc.arena, asg.alloc.bytes)
@@ -141,7 +141,7 @@ _cmp_node :: proc(a, b: _Astar_Node) -> bool {return a.cost < b.cost}
 astar_get_path :: proc(
 	asg: ^AStar_Grid,
 	from, to: IVector2,
-    max_distance := max(f32),
+	max_distance := max(f32),
 	path_alloc := context.allocator,
 ) -> (
 	path: []IVector2,
@@ -192,9 +192,9 @@ astar_get_path :: proc(
 			found_path = true
 			break
 		}
-        
-        // Skip to the next point if this spot is further than the maximum distance by heuristic.
-        if asg.compute_heuristic(from, current) > max_distance { continue }
+
+		// Skip to the next point if this spot is further than the maximum distance by heuristic.
+		if asg.compute_heuristic(from, current) > max_distance {continue}
 
 		// Check all walkable neighbors. (No need for OOB check; this function does it.)
 		neighbors = _neighbors_walkable(asg, current, tmp_alloc)
